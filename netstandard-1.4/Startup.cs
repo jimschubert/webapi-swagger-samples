@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
+using Swashbuckle.SwaggerGen;
 
 namespace Petstore
 {
@@ -29,10 +26,22 @@ namespace Petstore
         {
             // Add framework services.
             services.AddMvc()
-                 .AddJsonOptions(opts =>
-                 {
-                     opts.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                 });
+                .AddJsonOptions(
+                    opts => { opts.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver(); });
+
+            services.AddSwaggerGen();
+
+            services.ConfigureSwaggerDocument(options =>
+            {
+                options.SingleApiVersion(new Info
+                {
+                    Version = "v1",
+                    Title = "PetStore",
+                    Description = "An example ASP.NET 5 Web API 2.2 of Swagger PetStore"
+                });
+            });
+
+            services.ConfigureSwaggerSchema(options => { options.DescribeAllEnumsAsStrings = true; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,12 +52,16 @@ namespace Petstore
 
             app.UseIISPlatformHandler();
 
+            app.UseDefaultFiles();
             app.UseStaticFiles();
 
             app.UseMvc();
+
+            app.UseSwaggerGen();
+            app.UseSwaggerUi();
         }
 
         // Entry point for the application.
-        public static void Main(string[] args) => Microsoft.AspNet.Hosting.WebApplication.Run<Startup>(args);
+        public static void Main(string[] args) => WebApplication.Run<Startup>(args);
     }
 }
